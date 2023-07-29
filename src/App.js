@@ -2,6 +2,7 @@ import Header from './Header.js'
 import TodoForm from './TodoForm.js'
 import TodoList from './TodoList.js'
 import { setItem, getItem } from './storage.js'
+import { createListHandler } from './TodoList.js'
 
 const $header = new Header()
 const $form = new TodoForm()
@@ -16,26 +17,25 @@ const appendDOMHandler = $target => {
 }
 
 const setTodo = value => {
-  let random = Math.floor(Math.random() * 100) + 1
+  let data
+  getItem('todos') === undefined
+    ? (data = [{ id: 1, todo: value, complete: false }])
+    : (data = [
+        ...getItem('todos'),
+        {
+          id: getItem('todos').length + 1,
+          todo: value,
+          complete: false,
+        },
+      ])
+  const arrData = JSON.stringify(data)
+  setItem('todos', arrData)
 
-  let inputData = [
-    ...getItem('todos'),
-    {
-      id: getItem('todos').length + 1,
-      todo: value,
-      complete: false,
-      userId: random,
-    },
-  ]
-
-  const data = JSON.stringify(inputData)
-  setItem('todos', data)
+  return data[data.length - 1].id
 }
 
-const appendListHandler = value => {
-  const $li = document.createElement('li')
-  const $text = document.createTextNode(value)
-  $li.appendChild($text)
+const appendListHandler = (id, value) => {
+  const $li = createListHandler(id, value)
   $todoList.appendChild($li)
   $input.value = ''
 }
@@ -43,8 +43,8 @@ const appendListHandler = value => {
 const clickButtonHandler = () => {
   const value = $input.value
   if ($input.value === '') return
-  setTodo(value)
-  appendListHandler(value)
+  const id = setTodo(value)
+  appendListHandler(id, value)
 }
 
 export default function App($target) {
